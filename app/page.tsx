@@ -2,13 +2,13 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAuthToken } from "@/lib/api/client";
+import { getToken } from "@/lib/api/client";
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = getAuthToken();
+    const token = getToken();
     if (token) {
       router.replace("/dashboard");
     } else {

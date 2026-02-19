@@ -2,14 +2,14 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { getAuthToken } from "@/lib/api/client";
+import { getToken } from "@/lib/api/client";
 import { authService } from "@/lib/services";
 import type { LoginBody, RegisterBody } from "@/lib/contracts";
 
 export function useAuth() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const token = typeof window !== "undefined" ? getAuthToken() : null;
+  const token = getToken();
   const isAuthenticated = !!token;
 
   const loginMutation = useMutation({

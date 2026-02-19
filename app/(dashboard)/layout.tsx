@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAuthToken } from "@/lib/api/client";
+import { getToken } from "@/lib/api/client";
 import { AppNav } from "@/components/layout/AppNav";
 import { Footer } from "@/components/layout/Footer";
 
@@ -14,7 +14,7 @@ export default function DashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
-    const token = getAuthToken();
+    const token = getToken();
     if (!token) {
       router.replace("/login");
     }
