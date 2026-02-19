@@ -54,6 +54,7 @@ export async function apiFetch<T>(
 
   const base = ensureApiUrl();
   const url = path.startsWith("http") ? path : `${base}${path}`;
+  console.log("url", url);
   const res = await fetch(url, {
     method,
     headers,
