@@ -21,8 +21,6 @@ build
 Thumbs.db
 
 # Env (pass at runtime)
-.env
-.env.*
 !.env.example
 
 # Debug / test
