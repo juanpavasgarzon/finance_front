@@ -1,16 +1,9 @@
 import type { RequestConfig } from "@/lib/api/types";
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-if (!BASE_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is not set");
-}
+import { ensureApiUrl } from "@/lib/env";
 
 export type { HttpMethod, RequestConfig } from "@/lib/api/types";
 
-let authToken: string | null = null;
-
 export function setAuthToken(token: string | null) {
-  authToken = token;
   if (typeof window !== "undefined") {
     if (token) {
       window.localStorage.setItem("finance_token", token);
@@ -20,12 +13,12 @@ export function setAuthToken(token: string | null) {
   }
 }
 
-export function getAuthToken(): string | null {
-  if (typeof window !== "undefined" && !authToken) {
-    authToken = window.localStorage.getItem("finance_token");
+export function getToken(): string | null {
+  if (typeof window === 'undefined') {
+    return null
   }
 
-  return authToken;
+  return window.localStorage.getItem('finance_token')
 }
 
 export class ApiError extends Error {
@@ -46,7 +39,7 @@ export async function apiFetch<T>(
   const {
     method = "GET",
     body,
-    token = getAuthToken(),
+    token = getToken(),
     headers: customHeaders = {},
     responseType = "json",
   } = config;
@@ -59,7 +52,8 @@ export async function apiFetch<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const url = path.startsWith("http") ? path : `${BASE_URL}${path}`;
+  const base = ensureApiUrl();
+  const url = path.startsWith("http") ? path : `${base}${path}`;
   const res = await fetch(url, {
     method,
     headers,

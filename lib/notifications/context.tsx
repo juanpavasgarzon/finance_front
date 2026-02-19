@@ -3,15 +3,16 @@
 import React, { createContext, useContext, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
-import { getAuthToken } from "@/lib/api/client";
+import { getToken } from "@/lib/api/client";
 import { notificationService } from "@/lib/services/notification.service";
+import { ensureApiUrl } from "@/lib/env";
 import { NOTIFICATIONS_NAMESPACE } from "@/lib/notifications/types";
 import type { AppNotification } from "@/lib/notifications/types";
 
 const NOTIFICATIONS_QUERY_KEY = ["notifications"] as const;
 
 function getWsUrl(): string {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrl = ensureApiUrl();
   if (!apiUrl) {
     throw new Error("NEXT_PUBLIC_API_URL is not set");
   }
@@ -49,7 +50,7 @@ function parsePayload(payload: unknown): AppNotification | null {
 
 export function NotificationsProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
-  const token = typeof window !== "undefined" ? getAuthToken() : null;
+  const token = getToken();
 
   const { data: notifications = [] } = useQuery({
     queryKey: NOTIFICATIONS_QUERY_KEY,
