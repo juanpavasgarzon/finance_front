@@ -20,7 +20,7 @@ function getWsUrl(): string {
     const u = new URL(apiUrl);
     return `${u.protocol === "https:" ? "wss:" : "ws:"}//${u.host}`;
   } catch {
-    return "http://localhost:3001";
+    throw new Error("Invalid NEXT_PUBLIC_API_URL");
   }
 }
 
@@ -117,7 +117,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       markAsRead: markAsReadMutation.mutate,
       markAllAsRead: () => markAllAsReadMutation.mutate(),
     }),
-    [notifications, unreadCount, markAsReadMutation.mutate, markAllAsReadMutation.mutate]
+    [notifications, unreadCount, markAsReadMutation, markAllAsReadMutation]
   );
 
   return (
