@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build
+.next
+out
+dist
+build
+
+# Git
+.git
+.gitignore
+
+# IDE / OS
+.idea
+.vscode
+*.swp
+.DS_Store
+Thumbs.db
+
+# Env (pass at runtime)
+.env
+.env.*
+!.env.example
+
+# Debug / test
+npm-debug.log*
+.yarn
+coverage
+*.log
+
+# Misc
+README.md
+.dockerignore
+Dockerfile
+docker-compose*.yml

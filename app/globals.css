@@ -1,26 +1,113 @@
 @import "tailwindcss";
 
-:root {
+/* Light: white + purple */
+:root,
+[data-theme="light"] {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1a1a2e;
+  --card: #f8f7fc;
+  --card-foreground: #1a1a2e;
+  --primary: #6d28d9;
+  --primary-foreground: #ffffff;
+  --primary-hover: #5b21b6;
+  --primary-muted: #ede9fe;
+  --border: #e5e7eb;
+  --muted: #6b7280;
+  --accent: #7c3aed;
+  --success: #059669;
+  --danger: #dc2626;
+}
+
+/* Dark: black + purple */
+[data-theme="dark"] {
+  --background: #0f0f14;
+  --foreground: #f3f4f6;
+  --card: #1a1a24;
+  --card-foreground: #f3f4f6;
+  --primary: #8b5cf6;
+  --primary-foreground: #ffffff;
+  --primary-hover: #a78bfa;
+  --primary-muted: #2e1065;
+  --border: #2d2d3a;
+  --muted: #9ca3af;
+  --accent: #a78bfa;
+  --success: #10b981;
+  --danger: #ef4444;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* Utility classes for theme colors */
+.bg-background { background-color: var(--background); }
+.text-foreground { color: var(--foreground); }
+.bg-card { background-color: var(--card); }
+.text-card-foreground { color: var(--card-foreground); }
+.bg-primary { background-color: var(--primary); }
+.text-primary { color: var(--primary); }
+.text-primary-foreground { color: var(--primary-foreground); }
+.border-border { border-color: var(--border); }
+.text-muted { color: var(--muted); }
+.bg-primary-muted { background-color: var(--primary-muted); }
+
+.hover\:bg-primary-hover:hover { background-color: var(--primary-hover); }
+
+/* Campos de formulario: mismo tamaño y estilo para input, select y date */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+select {
+  min-height: 2.5rem;
+  box-sizing: border-box;
+}
+
+select {
+  width: 100%;
+  height: 2.625rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  color: var(--foreground);
+  padding: 0 2.5rem 0 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  box-sizing: border-box;
+  appearance: auto;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+/* Icono del calendario visible en modo oscuro */
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] input[type="datetime-local"] {
+  color-scheme: dark;
 }

@@ -1,0 +1,35 @@
+---
+description: Estructura del proyecto, carpetas y convenciones de estilo
+alwaysApply: true
+---
+
+# Estructura y estilo del proyecto
+
+## Estructura de carpetas
+
+- **`lib/`** – Lógica compartida: `api/` (cliente fetch), `contracts/` (tipos/DTOs), `services/` (llamadas API), `hooks/` (TanStack Query + custom), `i18n/`, `theme/`, `notifications/`.
+- **`app/`** – Next.js App Router: `(auth)/` (login, register), `(dashboard)/` (rutas protegidas), `layout.tsx`, `providers.tsx`, `globals.css`.
+- **`components/`** – `ui/` (Button, Input, Card, Drawer, ConfirmDialog, LoadingBackdrop), `layout/` (AppNav, Footer, ThemeLocaleSwitcher), `notifications/` (NotificationBell).
+- **`messages/`** – i18n: `en.json`, `es.json` (claves por sección: common, auth, nav, dashboard, categories, etc.).
+
+## Alias de imports
+
+- Usar **`@/`** para la raíz del proyecto: `@/lib/services`, `@/components/ui/Button`, `@/messages/en.json`.
+
+## Estilo de código
+
+- **Espaciado (Node.js / PSR-like):** una línea en blanco después de cada bloque `if`/`else`/`for`/`while` antes del siguiente enunciado; una línea en blanco entre funciones. Ver regla `code-style-spacing.mdc`.
+- **If/else siempre con bloque:** usar `{}` en todas las ramas.
+  ```typescript
+  // ✅ Correcto
+  if (!token) {
+    return;
+  }
+  if (payload) {
+    doSomething();
+  } else {
+    doOther();
+  }
+  ```
+- **Componentes cliente:** marcar con `"use client";` al inicio cuando usen hooks, contexto o eventos.
+- **Nombres:** componentes en PascalCase, hooks `useXxx`, servicios `xxx.service.ts`, tipos en `lib/contracts/`.

@@ -1,0 +1,117 @@
+{
+  "common": {
+    "appName": "Finanzas",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "back": "Volver",
+    "language": "Idioma",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "english": "Inglés",
+    "spanish": "Español"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "email": "Correo",
+    "password": "Contraseña",
+    "loginTitle": "Accede a tu cuenta",
+    "registerTitle": "Crear una cuenta",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "categories": "Categorías",
+    "schedules": "Programaciones",
+    "expenses": "Egresos",
+    "incomes": "Ingresos",
+    "reports": "Informes",
+    "logout": "Cerrar sesión"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "totalIncome": "Total ingresos",
+    "totalExpenses": "Total egresos",
+    "balance": "Saldo",
+    "period": "Período",
+    "downloadExcel": "Descargar Excel"
+  },
+  "categories": {
+    "title": "Categorías",
+    "expense": "Egreso",
+    "income": "Ingreso",
+    "name": "Nombre",
+    "type": "Tipo",
+    "create": "Crear categoría",
+    "expenseCategories": "Categorías de egresos",
+    "incomeCategories": "Categorías de ingresos"
+  },
+  "schedules": {
+    "title": "Programaciones",
+    "create": "Crear programación",
+    "amount": "Monto",
+    "currency": "Moneda",
+    "recurrence": "Recurrencia",
+    "nextDueDate": "Próxima fecha",
+    "description": "Descripción",
+    "interval": "Cada",
+    "day": "día",
+    "days": "días",
+    "week": "semana",
+    "weeks": "semanas",
+    "month": "mes",
+    "months": "meses",
+    "year": "año",
+    "years": "años"
+  },
+  "expenses": {
+    "title": "Egresos",
+    "create": "Añadir egreso",
+    "amount": "Monto",
+    "dueDate": "Fecha de vencimiento",
+    "paid": "Pagado",
+    "markPaid": "Marcar como pagado",
+    "unpaid": "Pendiente"
+  },
+  "incomes": {
+    "title": "Ingresos",
+    "create": "Añadir ingreso",
+    "amount": "Monto",
+    "dueDate": "Fecha de vencimiento",
+    "paid": "Cobrado",
+    "markPaid": "Marcar como cobrado",
+    "unpaid": "Pendiente"
+  },
+  "footer": {
+    "appDescription": "Gestiona ingresos, egresos y programaciones.",
+    "developer": "Desarrollado por",
+    "copyright": "Todos los derechos reservados."
+  },
+  "confirm": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "logoutTitle": "Cerrar sesión",
+    "logoutMessage": "¿Seguro que quieres cerrar sesión?",
+    "markPaidTitle": "Marcar como pagado",
+    "markPaidMessage": "¿Marcar este registro como pagado?"
+  },
+  "toast": {
+    "categoryCreated": "Categoría creada",
+    "expenseCreated": "Egreso añadido",
+    "incomeCreated": "Ingreso añadido",
+    "scheduleCreated": "Programación creada",
+    "markedPaid": "Marcado como pagado",
+    "error": "Algo salió mal"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todas como leídas",
+    "noNotifications": "Sin notificaciones"
+  }
+}

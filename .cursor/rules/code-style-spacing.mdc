@@ -1,0 +1,44 @@
+---
+description: Espaciado y estilo tipo Node.js / PSR: bloques separados por líneas en blanco
+alwaysApply: true
+---
+
+# Estilo de código: espaciado (Node.js / PSR-like)
+
+## Líneas en blanco obligatorias
+
+- **Después de un bloque `if` / `else` / `for` / `while` / `switch`:** dejar **una línea en blanco** antes del siguiente enunciado que no sea parte del mismo bloque (p. ej. otro `else`, `catch`, `finally`).
+
+  ```typescript
+  // ✅ Correcto
+  if (!token) {
+    return;
+  }
+
+  const data = loadData();
+
+  // ❌ Evitar: código pegado al cierre del if
+  if (!token) {
+    return;
+  }
+  const data = loadData();
+  ```
+
+- **Entre declaraciones de funciones** (o entre métodos): una línea en blanco entre cada función.
+
+- **Entre bloques lógicos** dentro de una función: variable declarations → lógica → return; separar con una línea en blanco si hay más de un bloque.
+
+## Indentación y formato
+
+- **Indentación:** 2 espacios (no tabs).
+- **Línea máxima:** preferir &lt; 100 caracteres; si se pasa, partir en varias líneas con indentación clara.
+
+## Estructura por contexto
+
+- Mantener **un propósito por archivo** (o por sección bien delimitada).
+- Agrupar por dominio/contexto: `lib/` por capa (api, contracts, services, hooks), `components/` por tipo (ui, layout, notifications).
+
+## Automatización
+
+- ESLint aplica estas reglas con **`padding-line-between-statements`** (ver `eslint.config.mjs`).
+- Corregir espaciado automáticamente: **`npm run lint:fix`**.

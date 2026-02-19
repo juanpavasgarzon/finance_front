@@ -1,0 +1,32 @@
+---
+description: Patrones de UI, datos e i18n en el frontend
+globs: **/*.tsx,**/lib/**/*.ts,**/app/**/*.tsx
+alwaysApply: false
+---
+
+# Patrones del frontend
+
+## API y datos
+
+- **HTTP:** usar `apiFetch(path, { method, body, token? })` de `@/lib/api/client`. No crear `fetch` directos.
+- **Tipos:** importar de `@/lib/contracts` (auth, category, schedule, expense, income, report).
+- **Servicios:** llamar a `@/lib/services` (authService, categoryService, etc.); los hooks encapsulan TanStack Query.
+- **Hooks:** usar `@/lib/hooks` (useCategories, useCreateCategory, useExpenses, useAuth, etc.). Invalidar con `queryKey` coherente (ej. `keys.all`).
+
+## UI y tema
+
+- **Estilos:** Tailwind + variables CSS en `app/globals.css`. Tema claro/oscuro con `data-theme="light"|"dark"`. Usar clases: `bg-background`, `text-foreground`, `bg-card`, `text-primary`, `border-border`, `text-muted`, `bg-primary-muted`, `var(--danger)`.
+- **Formularios:** meter en **Drawer** (sidebar), no inline. Botones Cancelar + Aceptar dentro del Drawer.
+- **Acciones destructivas o críticas:** usar **ConfirmDialog** (logout, marcar pagado, generar ocurrencias).
+- **Feedback:** **toast** de `sonner`: `toast.success(t("toast.xxx"))`, `toast.error(t("toast.error"))` en mutaciones.
+
+## i18n
+
+- **Traducir todo el texto de usuario** con `useI18n()` y `t("section.key")`. Claves en `messages/en.json` y `messages/es.json` (misma estructura).
+- Ejemplos: `t("common.loading")`, `t("categories.create")`, `t("toast.categoryCreated")`.
+
+## Páginas del dashboard
+
+- Título con `h1` (responsive: `text-xl sm:text-2xl`).
+- Acción principal (crear, añadir) abre Drawer; lista en Card(s); tablas con `overflow-x-auto` y clases responsive (`hidden sm:table-cell` si hace falta).
+- Espaciado: `space-y-4`, `gap-3`/`gap-4`, contenedor `max-w-[1600px]`, padding `px-3 sm:px-5 lg:px-6`.
