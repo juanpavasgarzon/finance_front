@@ -1,13 +1,25 @@
 export type ReportPeriod = "MONTHLY" | "WEEKLY" | "YEARLY";
 
+export interface CategoryBreakdown {
+  categoryId: string;
+  categoryName: string;
+  total: number;
+  count: number;
+}
+
+export interface DashboardSummary {
+  period: string;
+  dateFrom: string;
+  dateTo: string;
+  totalIncome: number;
+  totalExpenses: number;
+  balance: number;
+}
+
 export interface DashboardReport {
-  period: ReportPeriod;
-  date: string;
-  totalIncome?: number;
-  totalExpenses?: number;
-  balance?: number;
-  incomes?: Array<{ amount: number; currencyCode: string; description?: string }>;
-  expenses?: Array<{ amount: number; currencyCode: string; description?: string }>;
+  summary: DashboardSummary;
+  expensesByCategory: CategoryBreakdown[];
+  incomesByCategory: CategoryBreakdown[];
 }
 
 export interface DashboardParams {

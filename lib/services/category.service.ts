@@ -11,4 +11,8 @@ export const categoryService = {
   create(body: CreateCategoryBody): Promise<Category> {
     return apiFetch<Category>("/categories", { method: "POST", body });
   },
+
+  remove(categoryId: string): Promise<void> {
+    return apiFetch<void>(`/categories/${categoryId}`, { method: "DELETE" });
+  },
 };

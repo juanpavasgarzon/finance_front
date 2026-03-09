@@ -2,60 +2,92 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CircularProgress from "@mui/material/CircularProgress";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+
 import { useI18n } from "@/lib/i18n/context";
 import { useAuth } from "@/lib/hooks";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { ApiError } from "@/lib/api/client";
 
 export default function LoginPage() {
-  const { t } = useI18n();
+  const { t, localePath } = useI18n();
   const { loginMutation } = useAuth();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
     try {
-      await loginMutation.mutateAsync({ email, password });
+      await loginMutation.mutateAsync({ username, password });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Login failed");
+      setError(err instanceof ApiError ? err.message : t("toast.error"));
     }
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-lg">
-      <h1 className="mb-6 text-2xl font-bold text-foreground">{t("auth.loginTitle")}</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <Input
-          label={t("auth.email")}
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-        />
-        <Input
-          label={t("auth.password")}
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete="current-password"
-        />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        <Button type="submit" loading={loginMutation.isPending}>
-          {t("auth.login")}
-        </Button>
-      </form>
-      <p className="mt-4 text-center text-sm text-muted">
-        {t("auth.noAccount")}{" "}
-        <Link href="/register" className="font-medium text-primary hover:underline">
-          {t("auth.register")}
-        </Link>
-      </p>
-    </div>
+    <Card elevation={4}>
+      <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+        <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
+          {t("auth.loginTitle")}
+        </Typography>
+
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          <TextField
+            label={t("auth.username")}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            fullWidth
+            autoComplete="username"
+          />
+
+          <TextField
+            label={t("auth.password")}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            fullWidth
+            autoComplete="current-password"
+          />
+
+          {error && <Alert severity="error">{error}</Alert>}
+
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            fullWidth
+            disabled={loginMutation.isPending}
+            startIcon={loginMutation.isPending ? <CircularProgress size={18} color="inherit" /> : undefined}
+          >
+            {t("auth.login")}
+          </Button>
+        </Box>
+
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 3, textAlign: "center" }}>
+          {t("auth.noAccount")}{" "}
+          <Typography
+            component={Link}
+            href={localePath("/register")}
+            variant="body2"
+            color="primary"
+            fontWeight={600}
+            sx={{ textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+          >
+            {t("auth.register")}
+          </Typography>
+        </Typography>
+      </CardContent>
+    </Card>
   );
 }

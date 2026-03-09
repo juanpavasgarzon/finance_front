@@ -39,3 +39,11 @@ export function useMarkIncomePaid() {
     },
   });
 }
+
+export function useDeleteIncome() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => incomeService.remove(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.all }),
+  });
+}

@@ -1,30 +1,32 @@
-import { apiFetch, setAuthToken } from "@/lib/api/client";
-import type { AuthResponse, LoginBody, RegisterBody } from "@/lib/contracts";
+import { apiFetch } from "@/lib/api/client";
+import type { LoginBody, RegisterBody, UserPreferences, UserProfile } from "@/lib/contracts";
 
 export const authService = {
-  async register(body: RegisterBody): Promise<AuthResponse> {
-    const res = await apiFetch<AuthResponse>("/auth/register", {
+  async register(body: RegisterBody): Promise<{ id: string; username: string }> {
+    return apiFetch<{ id: string; username: string }>("/auth/register", {
       method: "POST",
       body,
-      token: null,
     });
-    return res;
   },
 
-  async login(body: LoginBody): Promise<AuthResponse> {
-    const res = await apiFetch<AuthResponse>("/auth/login", {
+  async login(body: LoginBody): Promise<void> {
+    await apiFetch<{ message: string }>("/auth/login", {
       method: "POST",
       body,
-      token: null,
     });
-    if (res.accessToken) {
-      setAuthToken(res.accessToken);
-    }
-
-    return res;
   },
 
-  logout() {
-    setAuthToken(null);
+  async logout(): Promise<void> {
+    await apiFetch<{ message: string }>("/auth/logout", {
+      method: "POST",
+    });
+  },
+
+  me(): Promise<UserProfile> {
+    return apiFetch<UserProfile>("/auth/me");
+  },
+
+  updatePreferences(body: Partial<UserPreferences>): Promise<UserPreferences> {
+    return apiFetch<UserPreferences>("/auth/preferences", { method: "PATCH", body });
   },
 };

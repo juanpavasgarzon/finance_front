@@ -1,22 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
+import Drawer from "@mui/material/Drawer";
+import MenuItem from "@mui/material/MenuItem";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import Paper from "@mui/material/Paper";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import IconButton from "@mui/material/IconButton";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import DownloadIcon from "@mui/icons-material/Download";
+
+import { InfoPopover } from "@/components/ui/InfoPopover";
 import { useI18n } from "@/lib/i18n/context";
-import { useIncomes, useCreateIncome, useMarkIncomePaid } from "@/lib/hooks";
+import { useIncomes, useCreateIncome, useMarkIncomePaid, useDeleteIncome } from "@/lib/hooks";
 import { useCategories } from "@/lib/hooks/use-categories";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Drawer } from "@/components/ui/Drawer";
-import { SheetSelect } from "@/components/ui/SheetSelect";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { formatCurrency } from "@/lib/utils/format";
+import { exportToExcel } from "@/lib/utils/excel-export";
+import { filterByPeriod } from "@/lib/utils/filter-by-period";
+import type { TimePeriod } from "@/lib/utils/filter-by-period";
 
-function formatDate(s: string) {
+function formatDate(s: string | null) {
+  if (!s) {
+    return "—";
+  }
+
   return new Date(s).toLocaleDateString();
-}
-
-function formatMoney(amount: number, currency = "COP") {
-  return new Intl.NumberFormat("es-CO", { style: "currency", currency }).format(amount);
 }
 
 export default function IncomesPage() {
@@ -25,31 +49,39 @@ export default function IncomesPage() {
   const { data: categories } = useCategories("INCOME");
   const createMutation = useCreateIncome();
   const markPaidMutation = useMarkIncomePaid();
+  const deleteMutation = useDeleteIncome();
 
+  const [period, setPeriod] = useState<TimePeriod>("monthly");
+  const [refDate, setRefDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [amount, setAmount] = useState("");
-  const currencyCode = "COP";
   const [dueDate, setDueDate] = useState("");
   const [description, setDescription] = useState("");
 
-  const [markPaidId, setMarkPaidId] = useState<string | null>(null);
+  const filteredIncomes = useMemo(() => {
+    return filterByPeriod(incomes ?? [], period, new Date(refDate));
+  }, [incomes, period, refDate]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    if (!categoryId || !amount || !dueDate) {
+
+    if (!categoryId || !amount || !name.trim()) {
       return;
     }
 
     try {
       await createMutation.mutateAsync({
         categoryId,
+        name: name.trim(),
         amount: Number(amount),
-        currencyCode,
-        description,
-        dueDate,
+        description: description.trim() || undefined,
+        dueDate: dueDate || undefined,
       });
       toast.success(t("toast.incomeCreated"));
+      setName("");
       setCategoryId("");
       setAmount("");
       setDescription("");
@@ -60,98 +92,270 @@ export default function IncomesPage() {
     }
   }
 
-  function handleMarkPaidConfirm() {
-    if (markPaidId) {
-      markPaidMutation.mutate(markPaidId, {
-        onSuccess: () => toast.success(t("toast.markedPaid")),
-        onError: () => toast.error(t("toast.error")),
-      });
-      setMarkPaidId(null);
+  async function handleDelete() {
+    if (!deleteTarget) {
+      return;
     }
+
+    try {
+      await deleteMutation.mutateAsync(deleteTarget.id);
+      toast.success(t("toast.deleted"));
+    } catch {
+      toast.error(t("toast.error"));
+    }
+
+    setDeleteTarget(null);
+  }
+
+  function handlePay(id: string) {
+    markPaidMutation.mutate(id, {
+      onSuccess: () => toast.success(t("toast.markedPaid")),
+      onError: () => toast.error(t("toast.error")),
+    });
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-bold text-foreground sm:text-2xl">{t("incomes.title")}</h1>
-        <Button onClick={() => setDrawerOpen(true)}>{t("incomes.create")}</Button>
-      </div>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography variant="h5" fontWeight={700}>{t("incomes.title")}</Typography>
+          <InfoPopover text={t("info.incomes")} />
+        </Box>
+
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, alignItems: "center" }}>
+          <TextField
+            select
+            size="small"
+            label={t("summary.period")}
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as TimePeriod)}
+            sx={{ minWidth: { xs: "calc(50% - 6px)", sm: 120 } }}
+          >
+            <MenuItem value="daily">{t("summary.daily")}</MenuItem>
+            <MenuItem value="monthly">{t("summary.monthly")}</MenuItem>
+            <MenuItem value="yearly">{t("summary.yearly")}</MenuItem>
+            <MenuItem value="all">{t("summary.all")}</MenuItem>
+          </TextField>
+
+          <TextField
+            type="date"
+            size="small"
+            value={refDate}
+            onChange={(e) => setRefDate(e.target.value)}
+            slotProps={{ inputLabel: { shrink: true } }}
+            sx={{ minWidth: { xs: "calc(50% - 6px)", sm: "auto" } }}
+          />
+        </Box>
+
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<DownloadIcon />}
+            onClick={async () => {
+              if (!filteredIncomes.length) {
+                return;
+              }
+
+              const catMap = new Map((categories ?? []).map((c) => [c.id, c.name]));
+
+              await exportToExcel([{
+                name: t("incomes.title"),
+                title: t("incomes.title"),
+                subtitle: `${t("summary.period")}: ${t(`summary.${period}`)} — ${refDate}`,
+                columns: [
+                  { header: t("common.name"), key: "name", width: 25 },
+                  { header: t("common.description"), key: "description", width: 30 },
+                  { header: t("incomes.amount"), key: "amount", width: 18, isCurrency: true },
+                  { header: t("categories.title"), key: "category", width: 20 },
+                  { header: t("incomes.dueDate"), key: "dueDate", width: 14 },
+                  { header: t("common.status"), key: "status", width: 12 },
+                ],
+                rows: filteredIncomes.map((inc) => ({
+                  name: inc.name,
+                  description: inc.description ?? "",
+                  amount: inc.amount,
+                  category: catMap.get(inc.categoryId) ?? "",
+                  dueDate: inc.dueDate ? new Date(inc.dueDate).toLocaleDateString() : "",
+                  status: inc.paidAt ? t("incomes.paid") : t("incomes.unpaid"),
+                })),
+              }], `incomes-${new Date().toISOString().slice(0, 10)}.xlsx`);
+            }}
+          >
+            Excel
+          </Button>
+
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDrawerOpen(true)}>
+            {t("incomes.create")}
+          </Button>
+        </Box>
+      </Box>
 
       {isLoading ? (
-        <p className="text-muted">{t("common.loading")}</p>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+          <CircularProgress />
+        </Box>
       ) : (
-        <div className="overflow-x-auto -mx-1 sm:mx-0">
-          <table className="w-full min-w-[500px] border-collapse border border-border">
-            <thead>
-              <tr className="bg-card">
-                <th className="border border-border px-3 py-2 text-left text-sm font-medium">{t("schedules.description")}</th>
-                <th className="border border-border px-3 py-2 text-left text-sm font-medium">{t("incomes.amount")}</th>
-                <th className="border border-border px-3 py-2 text-left text-sm font-medium">{t("incomes.dueDate")}</th>
-                <th className="border border-border px-3 py-2 text-left text-sm font-medium hidden sm:table-cell">Status</th>
-                <th className="border border-border px-3 py-2 text-left text-sm font-medium w-24"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {(incomes ?? []).map((i) => (
-                <tr key={i.id}>
-                  <td className="border border-border px-3 py-2">{i.description || "—"}</td>
-                  <td className="border border-border px-3 py-2">{formatMoney(i.amount, i.currencyCode)}</td>
-                  <td className="border border-border px-3 py-2">{formatDate(i.dueDate)}</td>
-                  <td className="border border-border px-3 py-2 hidden sm:table-cell">{i.paid ? t("incomes.paid") : t("incomes.unpaid")}</td>
-                  <td className="border border-border px-3 py-2">
-                    {!i.paid && (
-                      <Button
-                        variant="ghost"
-                        className="text-sm"
-                        onClick={() => setMarkPaidId(i.id)}
-                        disabled={markPaidMutation.isPending}
+        <TableContainer component={Paper} variant="outlined">
+          <Table sx={{ "& td + td, & th + th": { borderLeft: "1px solid", borderLeftColor: "divider" } }}>
+            <TableHead>
+              <TableRow>
+                <TableCell>{t("common.name")}</TableCell>
+                <TableCell>{t("common.description")}</TableCell>
+                <TableCell>{t("incomes.amount")}</TableCell>
+                <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>{t("incomes.dueDate")}</TableCell>
+                <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>{t("common.status")}</TableCell>
+                <TableCell align="right" sx={{ width: 100 }}></TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {filteredIncomes.map((row) => {
+                const isPaid = !!row.paidAt;
+
+                return (
+                  <TableRow key={row.id} hover>
+                    <TableCell sx={{ fontWeight: 600 }}>{row.name || "—"}</TableCell>
+                    <TableCell>{row.description || "—"}</TableCell>
+                    <TableCell>{formatCurrency(Number(row.amount))}</TableCell>
+                    <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>{formatDate(row.dueDate)}</TableCell>
+                    <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                      <Chip
+                        label={isPaid ? t("incomes.paid") : t("incomes.unpaid")}
+                        color={isPaid ? "success" : "warning"}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                      {!isPaid && (
+                        <Button
+                          size="small"
+                          variant="contained"
+                          onClick={() => handlePay(row.id)}
+                          disabled={markPaidMutation.isPending}
+                          sx={{ mr: 0.5 }}
+                        >
+                          {t("incomes.pay")}
+                        </Button>
+                      )}
+
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => setDeleteTarget({ id: row.id, name: row.name || "—" })}
                       >
-                        {t("incomes.markPaid")}
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {(incomes ?? []).length === 0 && (
-            <p className="py-6 text-center text-muted">No incomes yet.</p>
+                        <DeleteOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+
+          {filteredIncomes.length === 0 && (
+            <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
+              {t("common.noData")}
+            </Typography>
           )}
-        </div>
+        </TableContainer>
       )}
 
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={t("incomes.create")}>
-        <form onSubmit={handleCreate} className="flex flex-col gap-4">
-          <SheetSelect
-            label="Category"
-            value={categoryId}
-            onChange={setCategoryId}
-            options={(categories ?? []).map((c) => ({ value: c.id, label: c.name }))}
-            emptyOption
-            placeholder="—"
-          />
-          <Input label={t("incomes.amount")} type="number" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-          <Input label={t("incomes.dueDate")} type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required />
-          <Input label={t("schedules.description")} value={description} onChange={(e) => setDescription(e.target.value)} />
-          <div className="flex gap-2 pt-2">
-            <Button type="button" variant="secondary" onClick={() => setDrawerOpen(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" loading={createMutation.isPending} disabled={!categoryId || !amount || !dueDate}>
-              {t("common.add")}
-            </Button>
-          </div>
-        </form>
-      </Drawer>
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>{t("confirm.deleteTitle")}</DialogTitle>
+        <DialogContent>
+          <Typography>{t("confirm.deleteMessage")}</Typography>
 
-      <ConfirmDialog
-        open={markPaidId !== null}
-        onClose={() => setMarkPaidId(null)}
-        onConfirm={handleMarkPaidConfirm}
-        title={t("confirm.markPaidTitle")}
-        message={t("confirm.markPaidMessage")}
-        loading={markPaidMutation.isPending}
-      />
-    </div>
+          {deleteTarget && (
+            <Typography sx={{ mt: 1, fontWeight: 700 }}>{deleteTarget.name}</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteTarget(null)}>{t("confirm.cancel")}</Button>
+          <Button
+            onClick={handleDelete}
+            variant="contained"
+            color="error"
+            disabled={deleteMutation.isPending}
+            startIcon={deleteMutation.isPending ? <CircularProgress size={18} color="inherit" /> : undefined}
+          >
+            {t("common.delete")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <Box sx={{ width: { xs: "100%", sm: 380 }, maxWidth: "100vw", p: 3 }}>
+          <Typography variant="h6" fontWeight={600} sx={{ mb: 3 }}>{t("incomes.create")}</Typography>
+
+          <Box component="form" onSubmit={handleCreate} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+            <TextField
+              label={t("common.name")}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              fullWidth
+            />
+
+            <TextField
+              select
+              label={t("categories.title")}
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="" disabled>—</MenuItem>
+              {(categories ?? []).map((c) => (
+                <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              label={t("incomes.amount")}
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              fullWidth
+            />
+
+            <TextField
+              label={t("incomes.dueDate")}
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              fullWidth
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+
+            <TextField
+              label={t("common.description")}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+              multiline
+              rows={2}
+            />
+
+            <Box sx={{ display: "flex", gap: 1.5, pt: 1 }}>
+              <Button variant="outlined" onClick={() => setDrawerOpen(false)} sx={{ flex: 1 }}>
+                {t("common.cancel")}
+              </Button>
+
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={!categoryId || !amount || !name.trim() || createMutation.isPending}
+                sx={{ flex: 1 }}
+                startIcon={createMutation.isPending ? <CircularProgress size={18} color="inherit" /> : undefined}
+              >
+                {t("common.add")}
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Drawer>
+    </Box>
   );
 }

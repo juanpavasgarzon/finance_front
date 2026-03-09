@@ -1,19 +1,19 @@
 export interface Expense {
   id: string;
   categoryId: string;
+  name: string;
   amount: number;
-  currencyCode: string;
-  description: string;
-  dueDate: string;
-  paid?: boolean;
-  paidAt?: string;
-  createdAt?: string;
+  description: string | null;
+  dueDate: string | null;
+  paidAt: string | null;
+  scheduleId: string | null;
+  createdAt: string;
 }
 
 export interface CreateExpenseBody {
   categoryId: string;
+  name: string;
   amount: number;
-  currencyCode: string;
-  description: string;
-  dueDate: string;
+  description?: string;
+  dueDate?: string;
 }

@@ -5,13 +5,16 @@ services:
       dockerfile: Dockerfile
       target: development
     image: finance-front:dev
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
       - WATCHPACK_POLLING=true
+      - NODE_OPTIONS=--max-old-space-size=4096
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/.next
     command: npm run dev

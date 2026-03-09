@@ -17,4 +17,8 @@ export const incomeService = {
   markPaid(id: string): Promise<Income> {
     return apiFetch<Income>(`/incomes/${id}/paid`, { method: "PATCH" });
   },
+
+  remove(id: string): Promise<void> {
+    return apiFetch<void>(`/incomes/${id}`, { method: "DELETE" });
+  },
 };

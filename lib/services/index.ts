@@ -5,3 +5,4 @@ export { expenseService } from "./expense.service";
 export { incomeService } from "./income.service";
 export { reportService } from "./report.service";
 export { notificationService } from "./notification.service";
+export { plannerService } from "./planner.service";
