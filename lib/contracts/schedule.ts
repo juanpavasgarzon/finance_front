@@ -6,22 +6,26 @@ export interface Schedule {
   id: string;
   categoryId: string;
   type: CategoryType;
+  name: string;
   amount: number;
-  currencyCode: string;
   recurrenceInterval: number;
   recurrenceUnit: RecurrenceUnit;
   nextDueDate: string;
-  description: string;
-  createdAt?: string;
+  startDate: string;
+  endDate: string | null;
+  description: string | null;
+  createdAt: string;
 }
 
 export interface CreateScheduleBody {
   categoryId: string;
   type: CategoryType;
+  name: string;
   amount: number;
-  currencyCode: string;
   recurrenceInterval: number;
   recurrenceUnit: RecurrenceUnit;
   nextDueDate: string;
-  description: string;
+  startDate: string;
+  endDate?: string;
+  description?: string;
 }

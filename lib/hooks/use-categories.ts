@@ -24,3 +24,11 @@ export function useCreateCategory() {
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.all }),
   });
 }
+
+export function useDeleteCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (categoryId: string) => categoryService.remove(categoryId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.all }),
+  });
+}

@@ -3,24 +3,6 @@ import { ensureApiUrl } from "@/lib/env";
 
 export type { HttpMethod, RequestConfig } from "@/lib/api/types";
 
-export function setAuthToken(token: string | null) {
-  if (typeof window !== "undefined") {
-    if (token) {
-      window.localStorage.setItem("finance_token", token);
-    } else {
-      window.localStorage.removeItem("finance_token");
-    }
-  }
-}
-
-export function getToken(): string | null {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  return window.localStorage.getItem('finance_token')
-}
-
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -39,7 +21,6 @@ export async function apiFetch<T>(
   const {
     method = "GET",
     body,
-    token = getToken(),
     headers: customHeaders = {},
     responseType = "json",
   } = config;
@@ -48,26 +29,27 @@ export async function apiFetch<T>(
     "Content-Type": "application/json",
     ...customHeaders,
   };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
 
   const base = ensureApiUrl();
   const url = path.startsWith("http") ? path : `${base}${path}`;
-  console.log("url", url);
   const res = await fetch(url, {
     method,
     headers,
+    credentials: "include",
     body: body != null ? JSON.stringify(body) : undefined,
   });
 
   if (res.status === 401) {
-    setAuthToken(null);
+    if (typeof window !== "undefined" && !path.includes("/auth/login")) {
+      window.location.href = "/login";
+    }
+
     throw new ApiError("Unauthorized", 401);
   }
 
   if (!res.ok) {
     let parsed: unknown;
+
     try {
       parsed = await res.json();
     } catch {

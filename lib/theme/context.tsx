@@ -4,16 +4,41 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 
 export type Theme = "light" | "dark";
 
-const STORAGE_KEY = "finance_theme";
+const COOKIE_KEY = "finance_theme";
+
+function setCookie(value: string) {
+  document.cookie = `${COOKIE_KEY}=${value};path=/;max-age=${365 * 24 * 60 * 60}`;
+}
+
+function getCookie(): Theme | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const cookie = document.cookie.split(";").find((c) => c.trim().startsWith(`${COOKIE_KEY}=`));
+
+  if (!cookie) {
+    return null;
+  }
+
+  const value = cookie.split("=")[1]?.trim();
+
+  if (value === "dark" || value === "light") {
+    return value;
+  }
+
+  return null;
+}
 
 function getInitialTheme(): Theme {
   if (typeof window === "undefined") {
     return "light";
   }
 
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (raw === "dark" || raw === "light") {
-    return raw;
+  const fromCookie = getCookie();
+
+  if (fromCookie) {
+    return fromCookie;
   }
 
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -29,12 +54,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
-    }
-
     document.documentElement.setAttribute("data-theme", theme);
-    window.localStorage.setItem(STORAGE_KEY, theme);
+    setCookie(theme);
   }, [theme]);
 
   const setTheme = useCallback((t: Theme) => setThemeState(t), []);
@@ -47,6 +68,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function useTheme() {
   const ctx = useContext(ThemeContext);
+
   if (!ctx) {
     throw new Error("useTheme must be used within ThemeProvider");
   }

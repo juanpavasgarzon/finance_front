@@ -20,3 +20,11 @@ export function useCreateSchedule() {
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.all }),
   });
 }
+
+export function useDeleteSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => scheduleService.remove(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.all }),
+  });
+}

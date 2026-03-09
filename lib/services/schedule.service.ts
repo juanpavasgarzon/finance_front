@@ -9,4 +9,8 @@ export const scheduleService = {
   create(body: CreateScheduleBody): Promise<Schedule> {
     return apiFetch<Schedule>("/schedules", { method: "POST", body });
   },
+
+  remove(id: string): Promise<void> {
+    return apiFetch<void>(`/schedules/${id}`, { method: "DELETE" });
+  },
 };

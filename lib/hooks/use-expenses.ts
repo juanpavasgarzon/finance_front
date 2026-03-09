@@ -39,3 +39,11 @@ export function useMarkExpensePaid() {
     },
   });
 }
+
+export function useDeleteExpense() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => expenseService.remove(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.all }),
+  });
+}

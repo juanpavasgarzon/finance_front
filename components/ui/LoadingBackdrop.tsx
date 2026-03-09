@@ -1,24 +1,20 @@
 "use client";
 
-import { useIsFetching } from "@tanstack/react-query";
-import { useI18n } from "@/lib/i18n/context";
+import LinearProgress from "@mui/material/LinearProgress";
+import Box from "@mui/material/Box";
+import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 
 export function LoadingBackdrop() {
-  const { ready: i18nReady } = useI18n();
   const isFetching = useIsFetching();
-  const show = !i18nReady || isFetching > 0;
+  const isMutating = useIsMutating();
 
-  if (!show) {
-    return null;
+  if (isFetching > 0 || isMutating > 0) {
+    return (
+      <Box sx={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: (theme) => theme.zIndex.appBar + 1 }}>
+        <LinearProgress color="primary" />
+      </Box>
+    );
   }
 
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80"
-      aria-live="polite"
-      aria-busy="true"
-    >
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-white border-t-transparent" />
-    </div>
-  );
+  return null;
 }

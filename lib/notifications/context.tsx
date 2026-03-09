@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
-import { getToken } from "@/lib/api/client";
+
 import { notificationService } from "@/lib/services/notification.service";
 import { ensureApiUrl } from "@/lib/env";
 import { NOTIFICATIONS_NAMESPACE } from "@/lib/notifications/types";
@@ -50,12 +50,13 @@ function parsePayload(payload: unknown): AppNotification | null {
 
 export function NotificationsProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
-  const token = getToken();
+  const profileData = queryClient.getQueryData<{ id: string }>(["auth", "me"]);
+  const isAuthenticated = !!profileData;
 
   const { data: notifications = [] } = useQuery({
     queryKey: NOTIFICATIONS_QUERY_KEY,
     queryFn: () => notificationService.listUnread(),
-    enabled: !!token,
+    enabled: isAuthenticated,
   });
 
   const markAsReadMutation = useMutation({
@@ -78,18 +79,28 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   );
 
   useEffect(() => {
-    if (!token || typeof window === "undefined") {
+    if (!isAuthenticated || typeof window === "undefined") {
       return;
     }
 
-    const url = getWsUrl();
+    let url: string;
+
+    try {
+      url = getWsUrl();
+    } catch {
+      return;
+    }
+
     const socketInstance = io(`${url}${NOTIFICATIONS_NAMESPACE}`, {
-      auth: { token },
       transports: ["websocket", "polling"],
+      reconnectionAttempts: 3,
+      reconnectionDelay: 5000,
+      withCredentials: true,
     });
 
     socketInstance.on("notification", (payload: unknown) => {
       const notification = parsePayload(payload);
+
       if (notification) {
         queryClient.setQueryData<AppNotification[]>(NOTIFICATIONS_QUERY_KEY, (old) =>
           [notification, ...(old ?? [])].slice(0, 100)
@@ -97,19 +108,11 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       }
     });
 
-    socketInstance.on("connect", () => {
-      console.log("Connected to notifications socket");
-    });
-
-    socketInstance.on("connect_error", () => {
-      console.error("Failed to connect to notifications socket");
-    });
-
     return () => {
       socketInstance.removeAllListeners();
       socketInstance.disconnect();
     };
-  }, [token, queryClient]);
+  }, [isAuthenticated, queryClient]);
 
   const value = useMemo(
     () => ({

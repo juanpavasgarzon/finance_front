@@ -1,14 +1,23 @@
 export interface RegisterBody {
-  email: string;
+  username: string;
   password: string;
+  country?: string;
 }
 
 export interface LoginBody {
-  email: string;
+  username: string;
   password: string;
 }
 
-export interface AuthResponse {
-  accessToken: string;
-  user?: { id: string; email: string };
+export interface UserPreferences {
+  theme?: "light" | "dark";
+  sidebarCollapsed?: boolean;
+  locale?: "en" | "es";
+}
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  country: string;
+  preferences: UserPreferences;
 }
