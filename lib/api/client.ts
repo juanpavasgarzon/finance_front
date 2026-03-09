@@ -3,6 +3,8 @@ import { ensureApiUrl } from "@/lib/env";
 
 export type { HttpMethod, RequestConfig } from "@/lib/api/types";
 
+const COOKIE_NAME = "finance_token";
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -12,6 +14,29 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
   }
+}
+
+export function getToken(): string | null {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]*)`));
+
+  if (!match) {
+    return null;
+  }
+
+  return decodeURIComponent(match[1]);
+}
+
+export function setToken(token: string): void {
+  const maxAge = 7 * 24 * 60 * 60;
+  document.cookie = `${COOKIE_NAME}=${encodeURIComponent(token)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+}
+
+export function removeToken(): void {
+  document.cookie = `${COOKIE_NAME}=; path=/; max-age=0`;
 }
 
 export async function apiFetch<T>(
@@ -30,17 +55,23 @@ export async function apiFetch<T>(
     ...customHeaders,
   };
 
+  const token = getToken();
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const base = ensureApiUrl();
   const url = path.startsWith("http") ? path : `${base}${path}`;
   const res = await fetch(url, {
     method,
     headers,
-    credentials: "include",
     body: body != null ? JSON.stringify(body) : undefined,
   });
 
   if (res.status === 401) {
     if (typeof window !== "undefined" && !path.includes("/auth/login")) {
+      removeToken();
       window.location.href = "/login";
     }
 
