@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, setToken } from "@/lib/api/client";
 import type { LoginBody, RegisterBody, UserPreferences, UserProfile } from "@/lib/contracts";
 
 export const authService = {
@@ -10,16 +10,12 @@ export const authService = {
   },
 
   async login(body: LoginBody): Promise<void> {
-    await apiFetch<{ message: string }>("/auth/login", {
+    const result = await apiFetch<{ accessToken: string }>("/auth/login", {
       method: "POST",
       body,
     });
-  },
 
-  async logout(): Promise<void> {
-    await apiFetch<{ message: string }>("/auth/logout", {
-      method: "POST",
-    });
+    setToken(result.accessToken);
   },
 
   me(): Promise<UserProfile> {
